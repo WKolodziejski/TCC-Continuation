@@ -29,27 +29,23 @@ enum Detect {
   FAST_BRIEF,
   FAST_FREAK,
   FAST_DAISY,
-  AGAST_BEBLID,
-  AGAST_SIFT,
-  AGAST_SURF,
-  AGAST_BRISK,
-  AGAST_BRIEF,
-  AGAST_FREAK,
-  AGAST_DAISY,
+  //  AGAST_BEBLID,
+  //  AGAST_SIFT,
+  //  AGAST_SURF,
+  //  AGAST_BRISK,
+  //  AGAST_BRIEF,
+  //  AGAST_FREAK,
+  //  AGAST_DAISY,
   SIFT,
   SURF,
   ORB,
   BRISK,
+  KAZE,
+  AKAZE,
   FAST_AOM
 };
 
-enum Match {
-  FLANN_BEST,
-  FLANN_KNN,
-  BF_BEST,
-  BF_KNN,
-  BF_AOM
-};
+enum Match { FLANN_BEST, FLANN_KNN, BF_BEST, BF_KNN, BF_AOM };
 
 enum Estimate {
   RANSAC,
@@ -59,7 +55,7 @@ enum Estimate {
   PROMSAC,
   PROMLESAC,
   LMEDS,
-  E_BREAK
+  RANSAC_AOM
 };
 
 void compute(const cv::Mat &src_frame, const cv::Mat &ref_frame,
@@ -68,6 +64,9 @@ void compute(const cv::Mat &src_frame, const cv::Mat &ref_frame,
 
 void av1(const cv::Mat &src_frame, const cv::Mat &ref_frame,
          TransformationType transformation_type, Stats &stats, int frame);
+
+string formatNameSolution(Detect detect_type, Match match_type, Estimate estimate_type,
+                  int frame);
 
 string detectName(int d);
 

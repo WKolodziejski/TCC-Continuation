@@ -15,7 +15,7 @@ if (OPENMP_FOUND)
 endif()
 
 set(SOURCE_FILES
-        main.cpp
+        utils.hpp
         utils.cpp
 
         william.hpp
@@ -25,6 +25,7 @@ set(SOURCE_FILES
         av1/ransac.c
         av1/mathutils.h
         av1/random.h
+        av1/warp_affine.c
 
         av1/corner_match.c
         av1/corner_match.h
@@ -57,6 +58,9 @@ set(SOURCE_FILES
         )
 
 add_executable(main main.cpp ${SOURCE_FILES})
+add_executable(img img.cpp ${SOURCE_FILES})
 
 include_directories(/usr/local/bin)
+
 target_link_libraries(main ${OpenCV_LIBS})
+target_link_libraries(img ${OpenCV_LIBS})

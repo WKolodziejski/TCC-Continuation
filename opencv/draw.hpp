@@ -1,5 +1,6 @@
 #ifndef DRAW_H
 
+#include "../av1/corner_match.h"
 #include <opencv4/opencv2/opencv.hpp>
 #include <opencv4/opencv2/xfeatures2d.hpp>
 
@@ -13,6 +14,15 @@ void draw_matches(Mat &src_img, Mat &ref_img,
                   std::vector<KeyPoint> &src_keypoints,
                   std::vector<KeyPoint> &ref_keypoints,
                   std::vector<DMatch> &good_matches, const string &name);
+
+void draw_motion_field(Mat &src_img, Mat &ref_img, Correspondence *correspondences,
+                       int num_correspondences, const string &name);
+
+void draw_clustered_motion_field(Mat &src_img, Mat &ref_img,
+                                 Correspondence *correspondences,
+                                 int num_correspondences, const string &name);
+
+double draw_warped(const Mat &src_img, const Mat &ref_img, const double mat[8], const string &name);
 
 //#ifdef __cplusplus
 // extern "C" {

@@ -1,6 +1,5 @@
 #include <opencv2/videoio.hpp>
-#include "william.hpp"
-#include "utils.cpp"
+#include "utils.hpp"
 #include <chrono>
 #include <omp.h>
 
@@ -8,8 +7,8 @@ using namespace cv;
 using namespace cv::xfeatures2d;
 using namespace std::chrono;
 
-#define ITERATIONS 10
-#define FRAMES 3
+#define ITERATIONS 1
+#define FRAMES 7
 
 // args: <output_folder> <input_videos...>
 int main(int argc, char *argv[]) {
@@ -33,7 +32,11 @@ int main(int argc, char *argv[]) {
           "\tTIME\n");
 
 //---------------------Launch threads for each video-------------------------
-#pragma omp parallel default(none) \
+
+  omp_set_dynamic(0);
+  omp_set_num_threads(12);
+
+  #pragma omp parallel default(none) \
     shared(argc, argv, folder, stats_global, start_global, stderr)
   {
     #pragma omp for schedule(static)
@@ -58,8 +61,8 @@ int main(int argc, char *argv[]) {
         if (!video.read(ref_frame)) break;
 
         for (int i = 0; i < ITERATIONS; i++) {
-          for (int d = Detect::FAST_BEBLID; d < Detect::FAST_AOM; d++) {
-            for (int m = Match::FLANN_BEST; m < Match::BF_AOM; m++) {
+          for (int d = Detect::FAST_BEBLID; d < Detect::FAST_SIFT; d++) {
+            for (int m = Match::FLANN_KNN; m < Match::BF_BEST; m++) {
               compute(src_frame, ref_frame, ROTZOOM, static_cast<Detect>(d),
                       static_cast<Match>(m), Estimate::RANSAC,
                       stats_all[f][i][d][m], f);
@@ -69,11 +72,11 @@ int main(int argc, char *argv[]) {
             }
           }
 
-          av1(src_frame, ref_frame, ROTZOOM, stats_all[f][i][FAST_AOM][BF_AOM],
-              f);
-
-          print_cmd(stats_all[f][i][FAST_AOM][BF_AOM], name, FAST_AOM, BF_AOM,
-                    i, f, omp_get_thread_num());
+//          av1(src_frame, ref_frame, ROTZOOM, stats_all[f][i][FAST_AOM][BF_AOM],
+//              f);
+//
+//          print_cmd(stats_all[f][i][FAST_AOM][BF_AOM], name, FAST_AOM, BF_AOM,
+//                    i, f, omp_get_thread_num());
         }
       }
 
@@ -150,7 +153,7 @@ int main(int argc, char *argv[]) {
               duration_cast<milliseconds>(stop_this - start_this).count());
     }
 
-#pragma omp master
+    #pragma omp master
     {
       //-------------------------Initialize global files-----------------------
 

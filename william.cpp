@@ -1,8 +1,8 @@
-#include "william.hpp"
 #include "robust/sac.hpp"
 #include "opencv/cv.cpp"
 #include "opencv/draw.hpp"
 #include "av1/corner_detect.h"
+#include "utils.hpp"
 #include <opencv2/imgproc.hpp>
 #include <chrono>
 
@@ -10,105 +10,6 @@ using namespace cv;
 using namespace cv::xfeatures2d;
 using namespace std;
 using namespace std::chrono;
-
-const char *DetectName[] = {
-  [Detect::FAST_BEBLID] = "FAST",
-  [Detect::FAST_SIFT] = "FAST",
-  [Detect::FAST_SURF] = "FAST",
-  [Detect::FAST_BRISK] = "FAST",
-  [Detect::FAST_BRIEF] = "FAST",
-  [Detect::FAST_FREAK] = "FAST",
-  [Detect::FAST_DAISY] = "FAST",
-  [Detect::AGAST_BEBLID] = "AGAST",
-  [Detect::AGAST_SIFT] = "AGAST",
-  [Detect::AGAST_SURF] = "AGAST",
-  [Detect::AGAST_BRISK] = "AGAST",
-  [Detect::AGAST_BRIEF] = "AGAST",
-  [Detect::AGAST_FREAK] = "AGAST",
-  [Detect::AGAST_DAISY] = "AGAST",
-  [Detect::SIFT] = "SIFT",
-  [Detect::SURF] = "SURF",
-  [Detect::ORB] = "ORB",
-  [Detect::BRISK] = "BRISK",
-  //                              [Detect::BRIEF] = "BRIEF",
-  //                              [Detect::BLOB] = "BLOB",
-  //                              [Detect::KAZE] = "KAZE",
-  //                              [Detect::AKAZE] = "AKAZE",
-  [Detect::FAST_AOM] = "FAST"
-};
-
-const char *DescribeName[] = { [Detect::FAST_BEBLID] = "BEBLID",
-                               [Detect::FAST_SIFT] = "SIFT",
-                               [Detect::FAST_SURF] = "SURF",
-                               [Detect::FAST_BRISK] = "BRISK",
-                               [Detect::FAST_BRIEF] = "BRIEF",
-                               [Detect::FAST_FREAK] = "FREAK",
-                               [Detect::FAST_DAISY] = "DAISY",
-                               [Detect::AGAST_BEBLID] = "BEBLID",
-                               [Detect::AGAST_SIFT] = "SIFT",
-                               [Detect::AGAST_SURF] = "SURF",
-                               [Detect::AGAST_BRISK] = "BRISK",
-                               [Detect::AGAST_BRIEF] = "BRIEF",
-                               [Detect::AGAST_FREAK] = "FREAK",
-                               [Detect::AGAST_DAISY] = "DAISY",
-                               [Detect::SIFT] = "SIFT",
-                               [Detect::SURF] = "SURF",
-                               [Detect::ORB] = "ORB",
-                               [Detect::BRISK] = "BRISK",
-                               [Detect::FAST_AOM] = "CROSS" };
-
-const char *MatchName[] = {
-  [Match::FLANN_BEST] = "FLANN",
-  [Match::FLANN_KNN] = "FLANN",
-  //                            [Match::FLANN_RADIUS] = "FLANN",
-  [Match::BF_BEST] = "BF",
-  [Match::BF_KNN] = "BF",
-  //                            [Match::BF_RADIUS] = "BF",
-  [Match::BF_AOM] = "BF"
-};
-
-const char *ModeName[] = {
-  [Match::FLANN_BEST] = "BEST",
-  [Match::FLANN_KNN] = "KNN",
-  //                           [Match::FLANN_RADIUS] = "RADIUS",
-  [Match::BF_BEST] = "BEST",
-  [Match::BF_KNN] = "KNN",
-  //                           [Match::BF_RADIUS] = "RADIUS",
-  [Match::BF_AOM] = "BEST"
-};
-
-const char *EstimateName[] = {
-  [Estimate::RANSAC] = "RANSAC",   [Estimate::MLESAC] = "MLESAC",
-  [Estimate::MSAC] = "MSAC",       [Estimate::PROSAC] = "PROSAC",
-  [Estimate::PROMSAC] = "PROMSAC", [Estimate::PROMLESAC] = "PROMLESAC",
-  [Estimate::LMEDS] = "LMEDS"
-};
-
-string detectName(int d) { return DetectName[d]; }
-
-string matchName(int m) { return MatchName[m]; }
-
-string describeName(int d) { return DescribeName[d]; }
-
-string modeName(int m) { return ModeName[m]; }
-
-string estimateName(int e) { return EstimateName[e]; }
-
-string formatName(Detect detect_type, Match match_type, Estimate estimate_type,
-                  int frame) {
-  string name = "output/";
-  name.append(DetectName[detect_type]);
-  name.append("_");
-  name.append(DescribeName[detect_type]);
-  name.append("_");
-  name.append(MatchName[match_type]);
-  name.append("_");
-  name.append(EstimateName[estimate_type]);
-  name.append("_");
-  name.append(std::to_string(frame));
-  name.append(".png");
-  return name;
-}
 
 void compute(const Mat &src_frame, const Mat &ref_frame,
              TransformationType transformation_type, Detect detect_type,
@@ -131,19 +32,37 @@ void compute(const Mat &src_frame, const Mat &ref_frame,
   ref_descriptors.reserve(MAX_CORNERS * 2);
   good_matches.reserve(MAX_CORNERS * 2);
 
-//    string name = formatName(detect_type, match_type, estimate_type, frame);
-
   int num_src_corners =
-      detect(src_img, src_keypoints, src_descriptors, detect_type);
+      detect(src_img, src_keypoints, src_descriptors, detect_type, true);
 
   int num_ref_corners =
-      detect(ref_img, ref_keypoints, ref_descriptors, detect_type);
+      detect(ref_img, ref_keypoints, ref_descriptors, detect_type, true);
+
+  if (ref_keypoints.size() < 2 || src_keypoints.size() < 2) {
+    stats.src_points_num = num_src_corners;
+    stats.ref_points_num = num_ref_corners;
+    stats.matches_num = 0;
+    stats.inliers_num = 0;
+    stats.outliers_num = 0;
+    stats.matches_num = 0;
+    stats.inliers_per = 0;
+
+    auto stop = high_resolution_clock::now();
+    stats.time = duration_cast<milliseconds>(stop - start).count();
+
+    src_img.release();
+    ref_img.release();
+    src_descriptors.release();
+    ref_descriptors.release();
+
+    return;
+  }
 
   int num_correspondences = match(src_descriptors, ref_descriptors,
                                   good_matches, match_type, detect_type);
 
-  src_img.release();
-  ref_img.release();
+  //  src_img.release();
+  //  ref_img.release();
   src_descriptors.release();
   ref_descriptors.release();
 
@@ -175,14 +94,37 @@ void compute(const Mat &src_frame, const Mat &ref_frame,
     ptr++;
   }
 
-//    std::vector<DMatch> empty;
-//    draw_matches(src_img, ref_img, src_keypoints, ref_keypoints, good_matches, name);
+//  draw_motion_field(src_img, ref_img, correspondences, num_correspondences,
+//                    formatName("tcc_motion_field", frame));
+
+  //  draw_clustered_motion_field(src_img, ref_img, correspondences,
+  //                              num_correspondences,
+  //                              formatName("tcc_clusters", frame));
+
+  //  draw_matches(src_img, ref_img, src_keypoints, ref_keypoints, good_matches,
+  //               formatName("matches", frame));
 
   //  estimate(correspondences, num_correspondences, transformation_type,
-  //           estimate_type, stats);
+  //           estimate_type, stats, mat);
 
-  estimate_av1((int *)correspondences, num_correspondences, transformation_type,
-               stats);
+  // -------------------- NEW -------------------------------------
+
+  estimate_clustered(src_img, ref_img, correspondences, num_correspondences,
+                    transformation_type, estimate_type, stats, "tcc", frame);
+
+  // -------------------- OLD -------------------------------------
+
+  double mat[8];
+
+  estimate(correspondences, num_correspondences, transformation_type,
+           estimate_type, stats, mat);
+
+  draw_motion_field(src_img, ref_img, correspondences,
+                    num_correspondences,
+                    formatName("tcc_NON_CLUSTERED_motion_field", frame));
+
+  draw_warped(src_img, ref_img, mat,
+              formatName("tcc_NON_CLUSTERED_warped", frame));
 
   free(correspondences);
 
@@ -228,8 +170,8 @@ void av1(const Mat &src_frame, const Mat &ref_frame,
 
   auto stop_1 = high_resolution_clock::now();
 
-  src_img.release();
-  ref_img.release();
+  //  src_img.release();
+  //  ref_img.release();
 
   std::vector<DMatch> good_matches;
   std::vector<KeyPoint> src_keypoints, ref_keypoints;
@@ -240,8 +182,8 @@ void av1(const Mat &src_frame, const Mat &ref_frame,
     int rx = correspondences[j * 4 + 2];
     int ry = correspondences[j * 4 + 3];
 
-    src_keypoints.emplace_back(sx, sy, 1);
-    ref_keypoints.emplace_back(rx, ry, 1);
+    src_keypoints.emplace_back(sx, sy, 7);
+    ref_keypoints.emplace_back(rx, ry, 7);
     good_matches.emplace_back(j, j, 0);
   }
 
@@ -269,14 +211,22 @@ void av1(const Mat &src_frame, const Mat &ref_frame,
     ref_keypoints.emplace_back(ref_corners[2 * j], ref_corners[2 * j + 1], 1);
   }
 
-  //  std::vector<DMatch> empty;
-  //  draw_matches(src_img, ref_img, src_keypoints, ref_keypoints, empty,
-  //               "output/aom" + std::to_string(frame) + ".png");
-
   auto start_2 = high_resolution_clock::now();
 
-  estimate_av1(correspondences, num_correspondences, transformation_type,
-               stats);
+  draw_motion_field(src_img, ref_img, (Correspondence *)correspondences,
+                    num_correspondences,
+                    formatName("av1_motion_field", frame));
+
+  draw_clustered_motion_field(
+      src_img, ref_img, (Correspondence *)correspondences, num_correspondences,
+      formatName("av1_clusters", frame));
+
+  double mat[8];
+
+  estimate((Correspondence *)correspondences, num_correspondences,
+           transformation_type, RANSAC_AOM, stats, mat);
+
+  draw_warped(src_img, ref_img, mat, formatName("av1_warped", frame));
 
   free(correspondences);
 

@@ -30,6 +30,7 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
   Mat centers;
   Mat samples(num_correspondences, 1, CV_32F);
 
+  // Calcula distâncias dos MVs nas correspondências
   for (int i = 0; i < num_correspondences; i++) {
     samples.at<float>(i) = distance(correspondences[i]);
   }
@@ -37,6 +38,8 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
   double last_error = 0;
   int k = 1;
   int a = 0;
+
+  // Escolhe o melhor valor de K usando a regra do joelho
   for (int i = k; i < 10; i++) {
     double error = kmeans(samples, i, labels, TermCriteria(3, 10000, 0.0001), 5,
                           KMEANS_PP_CENTERS, centers);
@@ -64,6 +67,7 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
 
   vector<Correspondence> clusters[k];
 
+  // Popula os clusters com as respectivas correspondências
   for (int i = 0; i < num_correspondences; i++) {
     Correspondence c = correspondences[i];
     clusters[labels.at<int>(i)].push_back(c);
@@ -73,6 +77,7 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
   double best_error = HUGE_VAL;
   int best_k = 0;
 
+  // Escolhe a melhor matriz afim, dentre as K geradas
   for (int i = 0; i < k; i++) {
     fprintf(stderr, "----------%d----------\n", i);
 
@@ -97,6 +102,7 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
       continue;
     }
 
+    // Estima quantidade de inliers para o cluster atual
     double inliers = estimate(clusters[i].data(), size, transformation_type,
                               type, stats, mat);
 

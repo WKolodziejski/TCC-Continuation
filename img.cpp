@@ -10,6 +10,7 @@ using namespace cv;
 using namespace cv::xfeatures2d;
 using namespace std::chrono;
 
+// Usado para gerar imagens mais facilmente
 int main(int argc, char *argv[]) {
   string folder = argv[1];
 

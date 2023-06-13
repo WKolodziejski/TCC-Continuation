@@ -335,9 +335,9 @@ inline void best(Mat &desc1, Mat &desc2, vector<DMatch> &matches,
 inline int detect(Mat &img, vector<KeyPoint> &kpts, Mat &desc, Detect type,
                   bool custom) {
   if (custom) {
-    detect_custom(img, kpts, desc, type);
+    return detect_custom(img, kpts, desc, type);
   } else {
-    detect_default(img, kpts, desc, type);
+    return detect_default(img, kpts, desc, type);
   }
 }
 

@@ -117,6 +117,9 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
     draw_motion_field(src_img, ref_img, clusters[i].data(), size,
                       formatNameCluster("motion_field", name, frame, i));
 
+//    map[x][y].erro = sad()
+//    map[x][y].matriz = mat
+
     if (error < best_error) {
       best_error = error;
       best_k = i;

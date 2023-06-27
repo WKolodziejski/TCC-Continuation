@@ -110,7 +110,7 @@ void compute(const Mat &src_frame, const Mat &ref_frame,
   // -------------------- NEW -------------------------------------
 
   estimate_clustered(src_img, ref_img, correspondences, num_correspondences,
-                    transformation_type, estimate_type, stats, "tcc", frame);
+                    transformation_type, estimate_type, stats, frame);
 
   // -------------------- OLD -------------------------------------
 
@@ -121,10 +121,10 @@ void compute(const Mat &src_frame, const Mat &ref_frame,
 
   draw_motion_field(src_img, ref_img, correspondences,
                     num_correspondences,
-                    formatName("tcc_NON_CLUSTERED_motion_field", frame));
+                    formatName("non_clustered_motion_field", frame));
 
   draw_warped(src_img, ref_img, mat,
-              formatName("tcc_NON_CLUSTERED_warped", frame));
+              formatName("non_clustered_warped", frame));
 
   free(correspondences);
 

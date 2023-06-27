@@ -12,7 +12,7 @@ using namespace cv::xfeatures2d;
 using namespace std;
 
 void draw_k_warped_image(const Mat &src_img, const Mat &ref_img, int x, int y,
-                         MatrixMap **map, const string &name, int frame);
+                         MatrixMap **map, const string &name);
 
 void draw_matches(Mat &src_img, Mat &ref_img,
                   std::vector<KeyPoint> &src_keypoints,

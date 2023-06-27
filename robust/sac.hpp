@@ -34,7 +34,7 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
                         Correspondence *correspondences,
                         int num_correspondences,
                         TransformationType transformation_type, Estimate type,
-                        Stats &stats, const string& name, int frame);
+                        Stats &stats, int frame);
 
 #ifdef __cplusplus
 }

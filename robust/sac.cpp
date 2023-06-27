@@ -19,7 +19,8 @@ RTL::Estimator<RTL::Affine, Correspondence, Correspondence *> *getEstimator(
 }
 
 double segmented_error(const Mat &src_img, const Mat &ref_img,
-                       const double mat[8], int x, int y, MatrixMap **map, int k) {
+                       const double mat[8], int x, int y, MatrixMap **map,
+                       int k) {
   Mat warp_mat = Mat::zeros(2, 3, CV_64FC1);
   warp_mat.at<double>(0) = mat[2];  // scale x
   warp_mat.at<double>(1) = mat[3];  // rot +
@@ -37,7 +38,8 @@ double segmented_error(const Mat &src_img, const Mat &ref_img,
 
   for (int xi = 0; xi < x; xi++) {
     for (int yj = 0; yj < y; yj++) {
-      Rect roi = Rect(xi * WARP_BLOCK_SIZE, yj * WARP_BLOCK_SIZE, WARP_BLOCK_SIZE, WARP_BLOCK_SIZE);
+      Rect roi = Rect(xi * WARP_BLOCK_SIZE, yj * WARP_BLOCK_SIZE,
+                      WARP_BLOCK_SIZE, WARP_BLOCK_SIZE);
       Mat cropped = error_img(roi);
 
       double error = sum(cropped)[0];
@@ -60,10 +62,10 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
                         Correspondence *correspondences,
                         int num_correspondences,
                         TransformationType transformation_type, Estimate type,
-                        Stats &stats, const string &name, int frame) {
-  //    draw_clustered_motion_field(src_img, ref_img, correspondences,
-  //                                num_correspondences,
-  //                                formatName("tcc_clusters", frame));
+                        Stats &stats, int frame) {
+  draw_clustered_motion_field(src_img, ref_img, correspondences,
+                              num_correspondences,
+                              formatName("clustered_motion_field", frame));
 
   Mat labels;
   Mat centers;
@@ -99,12 +101,7 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
   int x = floor(src_img.size().width / WARP_BLOCK_SIZE);
   int y = floor(src_img.size().height / WARP_BLOCK_SIZE);
 
-//  MatrixMap &map = (MatrixMap*) malloc(x * sizeof(MatrixMap *));
-//  for (int ww = 0; ww < y; ww++) {
-//      &map[ww] = malloc(y * sizeof(MatrixMap));
-//  }
-
-  MatrixMap **map = new MatrixMap*[x];
+  auto **map = new MatrixMap *[x];
   for (int xi = 0; xi < x; xi++) {
     map[xi] = new MatrixMap[y];
   }
@@ -124,10 +121,6 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
     Correspondence c = correspondences[i];
     clusters[labels.at<int>(i)].push_back(c);
   }
-
-  double best_mat[8];
-  double best_error = HUGE_VAL;
-  int best_k = 0;
 
   // Escolhe a melhor matriz afim, dentre as K geradas
   for (int i = 0; i < k; i++) {
@@ -163,34 +156,16 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
       continue;
     }
 
-    //    double error = draw_warped(src_img, ref_img, mat,
-    //                               formatNameCluster("warped", name, frame,
-    //                               i));
-
     //    draw_motion_field(src_img, ref_img, clusters[i].data(), size,
     //                      formatNameCluster("motion_field", name, frame, i));
 
     segmented_error(src_img, ref_img, mat, x, y, map, i);
-
-//    if (error < best_error) {
-//      best_error = error;
-//      best_k = i;
-//      for (int j = 0; j < 8; j++) {
-//        best_mat[j] = mat[j];
-//      }
-//    }
   }
 
-  draw_k_warped_image(src_img, ref_img, x, y, map, name, frame);
+  draw_k_warped_image(src_img, ref_img, x, y, map,
+                      formatName("clustered_warped", frame));
 
   fprintf(stderr, "----------BEST---------\n");
-
-  draw_motion_field(
-      src_img, ref_img, clusters[best_k].data(), clusters[best_k].size(),
-      formatNameCluster("BEST_motion_field", name, frame, best_k));
-
-  draw_warped(src_img, ref_img, best_mat,
-              formatNameCluster("BEST_warped", name, frame, best_k));
 }
 
 double estimate(Correspondence *correspondences, int num_correspondences,

@@ -11,6 +11,8 @@ extern "C" {
 
 using namespace std;
 
+#define WARP_BLOCK_SIZE 8
+
 struct MatrixMap {
   double mat[8]{};
   double error = HUGE_VAL;

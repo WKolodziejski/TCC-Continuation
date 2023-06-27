@@ -37,7 +37,7 @@ double segmented_error(const Mat &src_img, const Mat &ref_img,
 
   for (int xi = 0; xi < x; xi++) {
     for (int yj = 0; yj < y; yj++) {
-      Rect roi = Rect(xi * 32, yj * 32, 32, 32);
+      Rect roi = Rect(xi * WARP_BLOCK_SIZE, yj * WARP_BLOCK_SIZE, WARP_BLOCK_SIZE, WARP_BLOCK_SIZE);
       Mat cropped = error_img(roi);
 
       double error = sum(cropped)[0];
@@ -96,8 +96,8 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
     last_error = error;
   }
 
-  int x = floor(src_img.size().width / 32);
-  int y = floor(src_img.size().height / 32);
+  int x = floor(src_img.size().width / WARP_BLOCK_SIZE);
+  int y = floor(src_img.size().height / WARP_BLOCK_SIZE);
 
 //  MatrixMap &map = (MatrixMap*) malloc(x * sizeof(MatrixMap *));
 //  for (int ww = 0; ww < y; ww++) {
@@ -181,7 +181,7 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
 //    }
   }
 
-  draw_k_warped_image(src_img, x, y, map, name, frame);
+  draw_k_warped_image(src_img, ref_img, x, y, map, name, frame);
 
   fprintf(stderr, "----------BEST---------\n");
 

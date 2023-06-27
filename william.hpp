@@ -11,6 +11,12 @@ extern "C" {
 
 using namespace std;
 
+struct MatrixMap {
+  double mat[8]{};
+  double error = HUGE_VAL;
+  int k;
+};
+
 struct Stats {
   int src_points_num = 0;
   int ref_points_num = 0;

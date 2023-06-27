@@ -1,6 +1,7 @@
 #ifndef DRAW_H
 
 #include "../av1/corner_match.h"
+#include "../william.hpp"
 #include <opencv4/opencv2/opencv.hpp>
 #include <opencv4/opencv2/xfeatures2d.hpp>
 
@@ -9,6 +10,8 @@
 using namespace cv;
 using namespace cv::xfeatures2d;
 using namespace std;
+
+void draw_k_warped_image(const Mat &src_img, int x, int y, MatrixMap **map, const string &name, int frame);
 
 void draw_matches(Mat &src_img, Mat &ref_img,
                   std::vector<KeyPoint> &src_keypoints,

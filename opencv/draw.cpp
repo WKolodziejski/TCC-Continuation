@@ -8,6 +8,11 @@ using namespace cv;
 using namespace cv::xfeatures2d;
 using namespace std;
 
+/*
+  / a b \  = /   1       0    \ * / 1+alpha  beta \
+  \ c d /    \ gamma  1+delta /   \    0      1   /
+  where a, b, c, d are wmmat[2], wmmat[3], wmmat[4], wmmat[5] respectively.
+ */
 Mat parse_affine_mat(const double mat[8]) {
   Mat warp_mat = Mat::zeros(2, 3, CV_64FC1);
 
@@ -37,10 +42,14 @@ Scalar get_cluster_color(int k) {
   }
 }
 
+Rect cut_rect(int xi, int yj) {
+  return { xi * WARP_BLOCK_SIZE, yj * WARP_BLOCK_SIZE, WARP_BLOCK_SIZE,
+           WARP_BLOCK_SIZE };
+}
+
 Mat cut_block(const Mat &src_img, int xi, int yj) {
   // Rect que recorta a imagem
-  Rect rect = Rect(xi * WARP_BLOCK_SIZE, yj * WARP_BLOCK_SIZE, WARP_BLOCK_SIZE,
-                   WARP_BLOCK_SIZE);
+  Rect rect = cut_rect(xi, yj);
 
   // Imagem preta
   Mat block_img = Mat::zeros(src_img.rows, src_img.cols, src_img.type());
@@ -70,9 +79,12 @@ Mat cut_overlay(const Mat &src_img, int xi, int yj, int k) {
 }
 
 void draw_k_warped_image(const Mat &src_img, const Mat &ref_img, int x, int y,
-                         MatrixMap **map, const string &name) {
-  Mat warped_img = Mat::zeros(src_img.rows, src_img.cols, src_img.type());
-  Mat clusters_img = Mat::zeros(src_img.rows, src_img.cols, CV_8UC3);
+                         MatrixMap **map, const string &inv_name,
+                         const string &fwd_name) {
+  Mat inv_warped_img = Mat::zeros(src_img.rows, src_img.cols, src_img.type());
+  Mat fwd_warped_img = Mat::zeros(src_img.rows, src_img.cols, src_img.type());
+  Mat inv_clusters_img = Mat::zeros(src_img.rows, src_img.cols, CV_8UC3);
+  Mat fwd_clusters_img = Mat::zeros(src_img.rows, src_img.cols, CV_8UC3);
 
   double error = 0;
 
@@ -82,46 +94,85 @@ void draw_k_warped_image(const Mat &src_img, const Mat &ref_img, int x, int y,
 
       error += map[xi][yj].error;
 
-      // ------------------CORTA ANTES E TRANSFORMA DEPOIS----------------------
+      // ---------------TRANSFORMA ANTES E CORTA NO DESTINO---------------------
+      //      {
+      //        float sx = (xi * WARP_BLOCK_SIZE) + (WARP_BLOCK_SIZE / 2);
+      //        float sy = (yj * WARP_BLOCK_SIZE) + (WARP_BLOCK_SIZE / 2);
+      //
+      //        double px = (warp_mat.at<double>(0) * sx +
+      //        warp_mat.at<double>(1) * sy +
+      //                    warp_mat.at<double>(2));
+      //
+      //        double py = (warp_mat.at<double>(3) * sx +
+      //        warp_mat.at<double>(4) * sy +
+      //                    warp_mat.at<double>(5));
+      //
+      //        int rx = px / WARP_BLOCK_SIZE;
+      //        int ry = py / WARP_BLOCK_SIZE;
+      //
+      //        if (!(rx > y || ry > y || rx < 0 || ry < 0)) {
+      //          Mat warped;
+      //          warpAffine(src_img, warped, warp_mat, src_img.size());
+      //
+      //          Mat block = cut_block(warped, rx, ry);
+      //          Mat overlay = cut_overlay(warped, rx, ry, map[xi][yj].k);
+      //
+      //          add(block, fwd_warped_img, fwd_warped_img);
+      //          add(overlay, fwd_clusters_img, fwd_clusters_img);
+      //        }
+      //      }
 
-      //      Mat block = cut_block(src_img, xi, yj);
-      //      Mat overlay = cut_overlay(src_img, xi, yj, map[xi][yj].k);
-      //
-      //      Mat warped_block;
-      //      warpAffine(block, warped_block, warp_mat, block.size(),
-      //      INTER_AREA); add(warped_block, warped_img, warped_img);
-      //
-      //      Mat warped_overlay;
-      //      warpAffine(overlay, warped_overlay, warp_mat, block.size(),
-      //      INTER_AREA); add(warped_overlay, clusters_img, clusters_img);
+      // ------------------CORTA ANTES E TRANSFORMA DEPOIS----------------------
+      {
+        Mat block = cut_block(src_img, xi, yj);
+        Mat overlay = cut_overlay(src_img, xi, yj, map[xi][yj].k);
+
+        Mat warped_block;
+        warpAffine(block, warped_block, warp_mat, block.size(), INTER_AREA);
+        add(warped_block, fwd_warped_img, fwd_warped_img);
+
+        Mat warped_overlay;
+        warpAffine(overlay, warped_overlay, warp_mat, block.size(), INTER_AREA);
+        add(warped_overlay, fwd_clusters_img, fwd_clusters_img);
+      }
 
       // ------------------TRANSFORMA ANTES E CORTA DEPOIS----------------------
-      Mat warped;
-      warpAffine(src_img, warped, warp_mat, src_img.size());
+      {
+        Mat warped;
+        warpAffine(src_img, warped, warp_mat, src_img.size());
 
-      Mat block = cut_block(warped, xi, yj);
-      Mat overlay = cut_overlay(warped, xi, yj, map[xi][yj].k);
+        Mat block = cut_block(warped, xi, yj);
+        Mat overlay = cut_overlay(warped, xi, yj, map[xi][yj].k);
 
-      add(block, warped_img, warped_img);
-      add(overlay, clusters_img, clusters_img);
+        add(block, inv_warped_img, inv_warped_img);
+        add(overlay, inv_clusters_img, inv_clusters_img);
+      }
     }
   }
 
   fprintf(stderr, "    segmented error: %f\n", error);
 
   // Para mostrar imagem de ref ao fundo
-  //  addWeighted(ref_img, 0.5, warped_img, 0.5, 0, warped_img);
+  addWeighted(ref_img, 0.5, inv_warped_img, 0.5, 0, inv_warped_img);
+  addWeighted(ref_img, 0.5, fwd_warped_img, 0.5, 0, fwd_warped_img);
 
-  Mat warped_rgb;
-  cv::cvtColor(warped_img, warped_rgb, cv::COLOR_GRAY2RGB);
+  Mat inv_warped_rgb;
+  cv::cvtColor(inv_warped_img, inv_warped_rgb, cv::COLOR_GRAY2RGB);
 
-  Mat map_img;
-  addWeighted(warped_rgb, 1, clusters_img, 0.5, 0, map_img);
+  Mat fwd_warped_rgb;
+  cv::cvtColor(fwd_warped_img, fwd_warped_rgb, cv::COLOR_GRAY2RGB);
+
+  Mat inv_map_img;
+  addWeighted(inv_warped_rgb, 1, inv_clusters_img, 0.5, 0, inv_map_img);
+
+  Mat fwd_map_img;
+  addWeighted(fwd_warped_rgb, 1, fwd_clusters_img, 0.5, 0, fwd_map_img);
 
   vector<int> params;
   params.push_back(cv::IMWRITE_PNG_COMPRESSION);
   params.push_back(0);
-  imwrite(name, map_img, params);
+  imwrite(inv_name, inv_map_img, params);
+  imwrite(fwd_name, fwd_map_img, params);
 }
 
 void draw_matches(Mat &src_img, Mat &ref_img,
@@ -190,12 +241,8 @@ void draw_clustered_motion_field(Mat &src_img, Mat &ref_img,
   Mat centers;
   Mat samples(num_correspondences, 1, CV_32F);
 
-  // TODO: considerar angulo também ?
   for (int i = 0; i < num_correspondences; i++) {
     samples.at<float>(i) = distance(correspondences[i]);
-    //    samples.at<float>(i, 1) = angle(correspondences[i]);
-    //    PARECE QUE UTILIZAR O ANGULO NÃO É VANTAJOSO, DEVIDO AO MOVIMENTO DE
-    //    ZOOM
   }
 
   double last_error = 0;
@@ -319,11 +366,6 @@ void draw_clustered_motion_field(Mat &src_img, Mat &ref_img,
   imwrite(name, img, params);
 }
 
-/*
-  / a b \  = /   1       0    \ * / 1+alpha  beta \
-  \ c d /    \ gamma  1+delta /   \    0      1   /
-  where a, b, c, d are wmmat[2], wmmat[3], wmmat[4], wmmat[5] respectively.
- */
 double draw_warped(const Mat &src_img, const Mat &ref_img, const double mat[8],
                    const string &name) {
   Mat warp_mat = parse_affine_mat(mat);

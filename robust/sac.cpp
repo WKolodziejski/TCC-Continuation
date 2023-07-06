@@ -57,7 +57,6 @@ double segmented_error(const Mat &src_img, const Mat &ref_img,
   }
 }
 
-// TODO: também comparar com versão padrão
 void estimate_clustered(Mat &src_img, Mat &ref_img,
                         Correspondence *correspondences,
                         int num_correspondences,
@@ -156,7 +155,8 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
   }
 
   draw_k_warped_image(src_img, ref_img, x, y, map,
-                      formatName("clustered_warped", frame));
+                      formatName("inv_clustered_warped", frame),
+                      formatName("fwd_clustered_warped", frame));
 }
 
 double estimate(Correspondence *correspondences, int num_correspondences,

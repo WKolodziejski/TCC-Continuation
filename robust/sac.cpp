@@ -109,8 +109,6 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
   labels.release();
   centers.release();
 
-  fprintf(stderr, "k = %d\n", k);
-
   kmeans(samples, k, labels, TermCriteria(3, 10000, 0.0001), 5,
          KMEANS_PP_CENTERS, centers);
 
@@ -124,13 +122,10 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
 
   // Escolhe a melhor matriz afim, dentre as K geradas
   for (int i = 0; i < k; i++) {
-    fprintf(stderr, "----------%d----------\n", i);
-
     double mat[8];
     size_t size = clusters[i].size();
 
     if (size < 3) {
-      fprintf(stderr, "SKIP size < 3\n");
       continue;
     }
 
@@ -143,7 +138,6 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
     }
 
     if (identity) {
-      fprintf(stderr, "SKIP identity\n");
       continue;
     }
 
@@ -152,7 +146,6 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
                               type, stats, mat);
 
     if (inliers < 0.01) {
-      fprintf(stderr, "SKIP inliers < 0.01\n");
       continue;
     }
 
@@ -164,8 +157,6 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
 
   draw_k_warped_image(src_img, ref_img, x, y, map,
                       formatName("clustered_warped", frame));
-
-  fprintf(stderr, "----------BEST---------\n");
 }
 
 double estimate(Correspondence *correspondences, int num_correspondences,
@@ -227,8 +218,6 @@ double estimate(Correspondence *correspondences, int num_correspondences,
       stats.matches_num == 0
           ? 0.0
           : (float)stats.inliers_num / (float)stats.matches_num * 100;
-
-  fprintf(stderr, "i = %f\n", stats.inliers_per);
 
   for (int i = 0; i < 8; i++) {
     mat[i] = params_by_motion->params[i];

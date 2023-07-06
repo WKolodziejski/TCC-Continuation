@@ -107,7 +107,7 @@ void draw_k_warped_image(const Mat &src_img, const Mat &ref_img, int x, int y,
     }
   }
 
-  fprintf(stderr, "Segmented error: %f\n", error);
+  fprintf(stderr, "    segmented error: %f\n", error);
 
   // Para mostrar imagem de ref ao fundo
   //  addWeighted(ref_img, 0.5, warped_img, 0.5, 0, warped_img);
@@ -220,8 +220,6 @@ void draw_clustered_motion_field(Mat &src_img, Mat &ref_img,
 
   labels.release();
   centers.release();
-
-  fprintf(stderr, "k = %d\n", k);
 
   kmeans(samples, k, labels, TermCriteria(3, 10000, 0.0001), 5,
          KMEANS_PP_CENTERS, centers);

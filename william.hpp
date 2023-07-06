@@ -11,7 +11,7 @@ extern "C" {
 
 using namespace std;
 
-#define WARP_BLOCK_SIZE 8
+#define WARP_BLOCK_SIZE 32
 
 struct MatrixMap {
   double mat[8]{};

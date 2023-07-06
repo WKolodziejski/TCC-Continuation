@@ -94,20 +94,9 @@ void compute(const Mat &src_frame, const Mat &ref_frame,
     ptr++;
   }
 
-//  draw_motion_field(src_img, ref_img, correspondences, num_correspondences,
-//                    formatName("tcc_motion_field", frame));
-
-  //  draw_clustered_motion_field(src_img, ref_img, correspondences,
-  //                              num_correspondences,
-  //                              formatName("tcc_clusters", frame));
-
-  //  draw_matches(src_img, ref_img, src_keypoints, ref_keypoints, good_matches,
-  //               formatName("matches", frame));
-
-  //  estimate(correspondences, num_correspondences, transformation_type,
-  //           estimate_type, stats, mat);
-
   // -------------------- NEW -------------------------------------
+
+  fprintf(stderr, "frame = %d\n", frame);
 
   estimate_clustered(src_img, ref_img, correspondences, num_correspondences,
                     transformation_type, estimate_type, stats, frame);

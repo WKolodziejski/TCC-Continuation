@@ -67,8 +67,8 @@ int main(int argc, char *argv[]) {
                       static_cast<Match>(m), Estimate::RANSAC,
                       stats_all[f][i][d][m], f);
 
-              print_cmd(stats_all[f][i][d][m], name, d, m, i, f,
-                        omp_get_thread_num());
+//              print_cmd(stats_all[f][i][d][m], name, d, m, i, f,
+//                        omp_get_thread_num());
             }
           }
 

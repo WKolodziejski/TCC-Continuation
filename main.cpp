@@ -12,6 +12,8 @@ using namespace std::chrono;
 
 // args: <output_folder> <input_videos...>
 int main(int argc, char *argv[]) {
+  fprintf(stderr, "%s", cv::getBuildInformation().c_str());
+
   auto start_global = high_resolution_clock::now();
   Stats stats_global[FAST_AOM + 1][BF_AOM + 1];
   string folder = argv[1];
@@ -36,10 +38,10 @@ int main(int argc, char *argv[]) {
   omp_set_dynamic(0);
   omp_set_num_threads(12);
 
-  #pragma omp parallel default(none) \
-    shared(argc, argv, folder, stats_global, start_global, stderr)
-  {
-    #pragma omp for schedule(static)
+//  #pragma omp parallel default(none) \
+//    shared(argc, argv, folder, stats_global, start_global, stderr)
+//  {
+//    #pragma omp for schedule(static)
     for (int v = 2; v < argc; v++) {
       string name = argv[v];
       VideoCapture video(name);
@@ -52,8 +54,8 @@ int main(int argc, char *argv[]) {
 
       auto start_this = high_resolution_clock::now();
 
-      if (!video.isOpened()) continue;
-      if (!video.read(src_frame)) continue;
+      if (!video.isOpened()) exit(-1);
+      if (!video.read(src_frame)) exit(-1);
 
       Stats stats_all[FRAMES][ITERATIONS][FAST_AOM + 1][BF_AOM + 1];
 
@@ -200,5 +202,5 @@ int main(int argc, char *argv[]) {
       fprintf(stderr, "--FINISHED IN %lu ms\n",
               duration_cast<milliseconds>(stop_global - start_global).count());
     }
-  }
+//  }
 }

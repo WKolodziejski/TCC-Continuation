@@ -34,10 +34,9 @@ int main(int argc, char *argv[]) {
     for (int f = 0; f < FRAMES; f++) {
       if (!video.read(ref_frame)) break;
 
-      compute(src_frame, ref_frame, ROTZOOM,
-              static_cast<Detect>(Detect::FAST_SIFT),
-              static_cast<Match>(Detect::FAST_BEBLID), Estimate::RANSAC,
-              stats_all[f][0][Detect::FAST_SIFT][Estimate::RANSAC], f);
+      compute(src_frame, ref_frame, ROTZOOM, Detect::FAST_BEBLID,
+              Match::FLANN_KNN, Estimate::RANSAC,
+              stats_all[f][0][Detect::FAST_BEBLID][Estimate::RANSAC], f);
     }
 
     video.release();

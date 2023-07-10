@@ -28,17 +28,18 @@ Mat parse_affine_mat(const double mat[8]) {
 
 Scalar get_cluster_color(int k) {
   switch (k) {
-    case 0: return Scalar(127, 0, 0);
-    case 1: return Scalar(0, 127, 0);
-    case 2: return Scalar(0, 0, 127);
-    case 3: return Scalar(127, 127, 0);
-    case 4: return Scalar(127, 0, 127);
-    case 5: return Scalar(0, 127, 127);
-    case 6: return Scalar(255, 0, 0);
-    case 7: return Scalar(0, 255, 0);
-    case 8: return Scalar(0, 0, 255);
-    case 9: return Scalar(255, 0, 255);
-    case 10: return Scalar(0, 255, 255);
+    case 0: return Scalar(255, 0, 0);
+    case 1: return Scalar(0, 255, 0);
+    case 2: return Scalar(127, 0, 127);
+    case 3: return Scalar(0, 255, 255);
+    case 4: return Scalar(255, 0, 255);
+    case 5: return Scalar(255, 255, 0);
+    case 6: return Scalar(255, 127, 0);
+    case 7: return Scalar(0, 255, 127);
+    case 8: return Scalar(127, 0, 255);
+    case 9: return Scalar(127, 127, 255);
+    case 10: return Scalar(255, 127, 127);
+    default: return Scalar(255, 255, 255);
   }
 }
 
@@ -304,10 +305,8 @@ void draw_clustered_motion_field(Mat &src_img, Mat &ref_img,
         break;
 
       case 2:
-        //        arrowedLine(mask, Point2f(c.x, c.y), Point2f(c.rx, c.ry),
-        //                    Scalar(0, 0, 255), 1, LINE_AA);
         arrowedLine(mask, Point2f(c.x, c.y), Point2f(c.rx, c.ry),
-                    Scalar(127, 255, 127), 1, LINE_AA);
+                    Scalar(127, 0, 127), 1, LINE_AA);
         break;
 
       case 3:

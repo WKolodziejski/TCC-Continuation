@@ -62,12 +62,14 @@ Mat cut_block(const Mat &src_img, int xi, int yj) {
   return block_img;
 }
 
-Mat cut_overlay(const Mat &src_img, int xi, int yj, int k) {
+Mat cut_overlay(const Mat &src_img, int xi, int yj, const MatrixMap &map) {
   // Rect que recorta a imagem
   Rect rect = Rect(xi * WARP_BLOCK_SIZE, yj * WARP_BLOCK_SIZE, WARP_BLOCK_SIZE,
                    WARP_BLOCK_SIZE);
 
-  Mat color = Mat(src_img.rows, src_img.cols, CV_8UC3, get_cluster_color(k));
+  Mat color =
+      Mat(src_img.rows, src_img.cols, CV_8UC3,
+          map.zero_motion ? Scalar(0, 0, 255) : get_cluster_color(map.k));
 
   // Imagem preta
   Mat block_img = Mat::zeros(src_img.rows, src_img.cols, CV_8UC3);
@@ -122,7 +124,7 @@ void draw_k_warped_image(const Mat &src_img, const Mat &ref_img, int x, int y,
       // ------------------CORTA ANTES E TRANSFORMA DEPOIS----------------------
       {
         Mat block = cut_block(src_img, xi, yj);
-        Mat overlay = cut_overlay(src_img, xi, yj, map[xi][yj].k);
+        Mat overlay = cut_overlay(src_img, xi, yj, map[xi][yj]);
 
         Mat warped_block;
         warpAffine(block, warped_block, warp_mat, block.size(), INTER_AREA);
@@ -139,7 +141,7 @@ void draw_k_warped_image(const Mat &src_img, const Mat &ref_img, int x, int y,
         warpAffine(src_img, warped, warp_mat, src_img.size());
 
         Mat block = cut_block(warped, xi, yj);
-        Mat overlay = cut_overlay(warped, xi, yj, map[xi][yj].k);
+        Mat overlay = cut_overlay(warped, xi, yj, map[xi][yj]);
 
         add(block, inv_warped_img, inv_warped_img);
         add(overlay, inv_clusters_img, inv_clusters_img);

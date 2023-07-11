@@ -11,7 +11,6 @@ class PROMSAC : virtual public RANSAC<Model, Datum, Data> {
  public:
   explicit PROMSAC(Estimator<Model, Datum, Data> *estimator)
       : RANSAC<Model, Datum, Data>(estimator) {
-    // fprintf(stderr, "---PROSAC---\n");
   }
 
  protected:

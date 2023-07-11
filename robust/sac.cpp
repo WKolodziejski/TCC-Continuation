@@ -20,7 +20,7 @@ RTL::Estimator<RTL::Affine, Correspondence, Correspondence *> *getEstimator(
 
 void segmented_error(const Mat &src_img, const Mat &ref_img,
                        const double mat[8], int x, int y, MatrixMap **map,
-                       int k) {
+                       int k, bool zero_motion) {
   Mat warp_mat = Mat::zeros(2, 3, CV_64FC1);
   warp_mat.at<double>(0) = mat[2];  // scale x
   warp_mat.at<double>(1) = mat[3];  // rot +
@@ -47,6 +47,7 @@ void segmented_error(const Mat &src_img, const Mat &ref_img,
       if (error < map[xi][yj].error) {
         map[xi][yj].error = error;
         map[xi][yj].k = k;
+        map[xi][yj].zero_motion = zero_motion;
 
         // Copia a matriz
         for (int j = 0; j < 8; j++) {
@@ -121,34 +122,35 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
 
   // Escolhe a melhor matriz afim, dentre as K geradas
   for (int i = 0; i < k; i++) {
-    double mat[8];
     size_t size = clusters[i].size();
 
     if (size < 3) {
       continue;
     }
 
-    bool identity = true;
-    for (double j : mat) {
-      if (j != 0) {
-        identity = false;
-        break;
-      }
-    }
-
-    if (identity) {
-      continue;
-    }
+    double mat[8];
 
     // Estima quantidade de inliers para o cluster atual
     double inliers = estimate(clusters[i].data(), size, transformation_type,
                               type, stats, mat);
 
+    //    bool identity = true;
+    //    for (double j : mat) {
+    //      if (j != 0) {
+    //        identity = false;
+    //        break;
+    //      }
+    //    }
+    //
+    //    if (identity) {
+    //      continue;
+    //    }
+
     if (inliers < 0.01) {
       continue;
     }
 
-     segmented_error(src_img, ref_img, mat, x, y, map, i);
+    segmented_error(src_img, ref_img, mat, x, y, map, i, distance(clusters[i].data()[1]) == 0);
   }
 
   stats.segmented_error = 0;
@@ -158,8 +160,6 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
       stats.segmented_error += map[xi][yj].error;
      }
   }
-
-  fprintf(stderr, "    segmented error: %f\n", stats.segmented_error);
 
   draw_k_warped_image(src_img, ref_img, x, y, map,
                       formatName("inv_clustered_warped", frame),

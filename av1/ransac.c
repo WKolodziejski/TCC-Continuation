@@ -524,8 +524,6 @@ static int ransac(const int *matched_points, int npoints,
     trial_count++;
   }
 
-//  fprintf(stderr, "BEST:\t %d: %f\n", bestiteration, bestloss);
-
   // Sort the motions, best first.
   qsort(motions, num_desired_motions, sizeof(RANSAC_MOTION), compare_motions);
 

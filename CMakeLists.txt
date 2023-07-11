@@ -18,8 +18,8 @@ set(SOURCE_FILES
         utils.hpp
         utils.cpp
 
-        william.hpp
-        william.cpp
+        solution.hpp
+        solution.cpp
 
         av1/ransac.h
         av1/ransac.c

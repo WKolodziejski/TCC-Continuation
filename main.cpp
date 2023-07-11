@@ -8,9 +8,10 @@ using namespace cv::xfeatures2d;
 
 // args: <output_folder> <input_videos...>
 int main(int argc, char *argv[]) {
-  fprintf(stderr, "%s", cv::getBuildInformation().c_str());
-
   string folder = argv[1];
+  ofstream csv;
+  csv.open(folder.append("results.csv"));
+  csv << "video;frame;error;seg_error;gain;percent\n";
 
   for (int v = 2; v < argc; v++) {
     string name = argv[v];
@@ -36,6 +37,27 @@ int main(int argc, char *argv[]) {
 
     video.release();
 
-    stats_percent(std::vector<Stats>(stats, stats + FRAMES));
+    fprintf(stderr, "%s\n", name.c_str());
+
+    for (int f = 0; f < FRAMES; f++) {
+      stats[f].gain = stats[f].non_segmented_error - stats[f].segmented_error;
+      stats[f].percent = (double) stats[f].gain / (double) stats[f].non_segmented_error;
+
+      fprintf(stderr, "frame %d\n", f);
+      fprintf(stderr, "gain: %d\n", stats[f].gain);
+      fprintf(stderr, "percent: %f\n", stats[f].percent);
+
+      string percent = std::to_string(stats[f].percent);
+      std::replace(percent.begin(), percent.end(), '.', ',');
+
+      csv << name << ";";
+      csv << f << ";";
+      csv << stats[f].non_segmented_error << ";";
+      csv << stats[f].segmented_error << ";";
+      csv << stats[f].gain << ";";
+      csv << percent << "\n";
+    }
   }
+
+  csv.close();
 }

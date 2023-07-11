@@ -16,13 +16,15 @@ using namespace std;
 struct MatrixMap {
   double mat[8]{};
   double error = HUGE_VAL;
-  int k;
+  int k = -1;
+  bool zero_motion = false;
 };
 
 struct Stats {
-  double segmented_error;
-  double non_segmented_error;
-  double gain;
+  int segmented_error;
+  int non_segmented_error;
+  int gain;
+  double percent;
 };
 
 enum Detect {
@@ -33,13 +35,6 @@ enum Detect {
   FAST_BRIEF,
   FAST_FREAK,
   FAST_DAISY,
-  //  AGAST_BEBLID,
-  //  AGAST_SIFT,
-  //  AGAST_SURF,
-  //  AGAST_BRISK,
-  //  AGAST_BRIEF,
-  //  AGAST_FREAK,
-  //  AGAST_DAISY,
   SIFT,
   SURF,
   ORB,

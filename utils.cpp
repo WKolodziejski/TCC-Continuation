@@ -14,69 +14,6 @@ double angle(Correspondence &c) {
   return atan2(y, x) * 180 / 3.14159265;
 }
 
-void stats_percent(const vector<Stats>& stats) {
-  for (auto stat : stats) {
-    stat.gain = stat.non_segmented_error - stat.segmented_error;
-    fprintf(stderr, "gain: %f\n", stat.gain);
-  }
-}
-
-//void print_csv(Stats &results, int d, int m, ofstream &csv) {
-//  string inliers = std::to_string(results.inliers_per);
-//  std::replace(inliers.begin(), inliers.end(), '.', ',');
-//
-//  csv << detectName(d) << ";";
-//  csv << describeName(d) << ";";
-//  csv << matchName(m) << ";";
-//  csv << modeName(m) << ";";
-//  csv << results.src_points_num << ";";
-//  csv << results.ref_points_num << ";";
-//  csv << results.matches_num << ";";
-//  csv << results.inliers_num << ";";
-//  csv << results.outliers_num << ";";
-//  csv << inliers << ";";
-//  csv << results.time << "\n";
-//}
-//
-//void print_cmd(Stats &results, const string &name, int d, int m, int i,
-//                      int f, int t) {
-//  fprintf(stderr,
-//          "%d\t|"
-//          "\t%s\t|"
-//          "\t%d\t|"
-//          "\t%d\t|"
-//          "\t%s\t|"
-//          "\t%s\t|"
-//          "\t%s\t|"
-//          "\t%s\t|"
-//          "\t%.2f\t|"
-//          "\t%lu ms\n",
-//          t, name.substr(0, name.length() < 8 ? name.length() : 8).c_str(), i,
-//          f, detectName(d).c_str(), describeName(d).c_str(),
-//          matchName(m).c_str(), modeName(m).c_str(), results.inliers_per,
-//          results.time);
-//}
-//
-//void stats_accumulate(Stats &stats_this, Stats &stats) {
-//  stats_this.time += stats.time;
-//  stats_this.src_points_num += stats.src_points_num;
-//  stats_this.ref_points_num += stats.ref_points_num;
-//  stats_this.matches_num += stats.matches_num;
-//  stats_this.inliers_num += stats.inliers_num;
-//  stats_this.outliers_num += stats.outliers_num;
-//  stats_this.inliers_per += stats.inliers_per;
-//}
-//
-//void stats_normalize(Stats &stats, int d) {
-//  stats.time /= d;
-//  stats.src_points_num /= d;
-//  stats.ref_points_num /= d;
-//  stats.matches_num /= d;
-//  stats.inliers_num /= d;
-//  stats.outliers_num /= d;
-//  stats.inliers_per /= (float) d;
-//}
-
 const char *DetectName[] = {
   [Detect::FAST_BEBLID] = "FAST", [Detect::FAST_SIFT] = "FAST",
   [Detect::FAST_SURF] = "FAST",   [Detect::FAST_BRISK] = "FAST",

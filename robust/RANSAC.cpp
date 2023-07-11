@@ -17,7 +17,6 @@ template <class Model, class Datum, class Data>
 class RANSAC {
  public:
   explicit RANSAC(Estimator<Model, Datum, Data> *estimator) {
-    // fprintf(stderr, "\n---RANSAC---\n");
     assert(estimator != NULL);
     toolEstimator = estimator;
   }
@@ -64,7 +63,6 @@ class RANSAC {
     double bestloss = HUGE_VAL;
     double bestvariance = HUGE_VAL;
     int iteration = 0;
-    int bestiteration = 0;
 
     while (iteration < MIN_TRIALS) {
       iteration++;
@@ -82,12 +80,9 @@ class RANSAC {
           best = model;
           bestloss = error.loss;
           bestvariance = error.variance;
-          bestiteration = iteration;
         }
       }
     }
-
-//    fprintf(stderr, "BEST:\t %d: %f\n", bestiteration, bestvariance);
 
     terminate(best, data, N);
   }

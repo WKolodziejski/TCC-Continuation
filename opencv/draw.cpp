@@ -87,13 +87,9 @@ void draw_k_warped_image(const Mat &src_img, const Mat &ref_img, int x, int y,
   Mat inv_clusters_img = Mat::zeros(src_img.rows, src_img.cols, CV_8UC3);
   Mat fwd_clusters_img = Mat::zeros(src_img.rows, src_img.cols, CV_8UC3);
 
-  double error = 0;
-
   for (int xi = 0; xi < x; xi++) {
     for (int yj = 0; yj < y; yj++) {
       Mat warp_mat = parse_affine_mat(map[xi][yj].mat);
-
-      error += map[xi][yj].error;
 
       // ---------------TRANSFORMA ANTES E CORTA NO DESTINO---------------------
       //      {
@@ -150,8 +146,6 @@ void draw_k_warped_image(const Mat &src_img, const Mat &ref_img, int x, int y,
       }
     }
   }
-
-  fprintf(stderr, "    segmented error: %f\n", error);
 
   // Para mostrar imagem de ref ao fundo
   addWeighted(ref_img, 0.5, inv_warped_img, 0.5, 0, inv_warped_img);
@@ -380,8 +374,6 @@ double draw_warped(const Mat &src_img, const Mat &ref_img, const double mat[8],
   multiply(error_img, error_img, error_img);
 
   double error = sum(error_img)[0];
-
-  fprintf(stderr, "Non-segmented error: %f\n", error);
 
   vector<int> params;
   params.push_back(cv::IMWRITE_PNG_COMPRESSION);

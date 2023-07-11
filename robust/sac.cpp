@@ -18,7 +18,7 @@ RTL::Estimator<RTL::Affine, Correspondence, Correspondence *> *getEstimator(
   }
 }
 
-double segmented_error(const Mat &src_img, const Mat &ref_img,
+void segmented_error(const Mat &src_img, const Mat &ref_img,
                        const double mat[8], int x, int y, MatrixMap **map,
                        int k) {
   Mat warp_mat = Mat::zeros(2, 3, CV_64FC1);
@@ -148,11 +148,18 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
       continue;
     }
 
-    //    draw_motion_field(src_img, ref_img, clusters[i].data(), size,
-    //                      formatNameCluster("motion_field", name, frame, i));
-
-    segmented_error(src_img, ref_img, mat, x, y, map, i);
+     segmented_error(src_img, ref_img, mat, x, y, map, i);
   }
+
+  stats.segmented_error = 0;
+
+  for (int xi = 0; xi < x; xi++) {
+     for (int yj = 0; yj < y; yj++) {
+      stats.segmented_error += map[xi][yj].error;
+     }
+  }
+
+  fprintf(stderr, "    segmented error: %f\n", stats.segmented_error);
 
   draw_k_warped_image(src_img, ref_img, x, y, map,
                       formatName("inv_clustered_warped", frame),
@@ -212,12 +219,9 @@ double estimate(Correspondence *correspondences, int num_correspondences,
     assert(0);
   }
 
-  stats.outliers_num = num_correspondences - params_by_motion->num_inliers;
-  stats.inliers_num = params_by_motion->num_inliers;
-  stats.inliers_per =
-      stats.matches_num == 0
-          ? 0.0
-          : (float)stats.inliers_num / (float)stats.matches_num * 100;
+  int outliers_num = num_correspondences - params_by_motion->num_inliers;
+  int inliers_num = params_by_motion->num_inliers;
+  double inliers_per = (float)inliers_num / (float)num_correspondences * 100;
 
   for (int i = 0; i < 8; i++) {
     mat[i] = params_by_motion->params[i];
@@ -227,7 +231,7 @@ double estimate(Correspondence *correspondences, int num_correspondences,
 
   delete estimator;
 
-  return stats.inliers_per;
+  return inliers_per;
 }
 
 // void estimate_av1(int *correspondences, int num_correspondences,

@@ -4,12 +4,10 @@
 #include "av1/corner_detect.h"
 #include "utils.hpp"
 #include <opencv2/imgproc.hpp>
-#include <chrono>
 
 using namespace cv;
 using namespace cv::xfeatures2d;
 using namespace std;
-using namespace std::chrono;
 
 void compute(const Mat &src_frame, const Mat &ref_frame,
              TransformationType transformation_type, Detect detect_type,
@@ -39,17 +37,6 @@ void compute(const Mat &src_frame, const Mat &ref_frame,
       detect(ref_img, ref_keypoints, ref_descriptors, detect_type, true);
 
   if (ref_keypoints.size() < 2 || src_keypoints.size() < 2) {
-    stats.src_points_num = num_src_corners;
-    stats.ref_points_num = num_ref_corners;
-    stats.matches_num = 0;
-    stats.inliers_num = 0;
-    stats.outliers_num = 0;
-    stats.matches_num = 0;
-    stats.inliers_per = 0;
-
-    auto stop = high_resolution_clock::now();
-    stats.time = duration_cast<milliseconds>(stop - start).count();
-
     src_img.release();
     ref_img.release();
     src_descriptors.release();
@@ -61,24 +48,10 @@ void compute(const Mat &src_frame, const Mat &ref_frame,
   int num_correspondences = match(src_descriptors, ref_descriptors,
                                   good_matches, match_type, detect_type);
 
-  //  src_img.release();
-  //  ref_img.release();
   src_descriptors.release();
   ref_descriptors.release();
 
-  stats.src_points_num = num_src_corners;
-  stats.ref_points_num = num_ref_corners;
-  stats.matches_num = num_correspondences;
-
   if (num_correspondences == 0) {
-    stats.inliers_num = 0;
-    stats.outliers_num = 0;
-    stats.matches_num = 0;
-    stats.inliers_per = 0;
-
-    auto stop = high_resolution_clock::now();
-    stats.time = duration_cast<milliseconds>(stop - start).count();
-
     return;
   }
 
@@ -99,7 +72,7 @@ void compute(const Mat &src_frame, const Mat &ref_frame,
   fprintf(stderr, "frame = %d\n", frame);
 
   estimate_clustered(src_img, ref_img, correspondences, num_correspondences,
-                    transformation_type, estimate_type, stats, frame);
+                     transformation_type, estimate_type, stats, frame);
 
   // -------------------- OLD -------------------------------------
 
@@ -108,17 +81,15 @@ void compute(const Mat &src_frame, const Mat &ref_frame,
   estimate(correspondences, num_correspondences, transformation_type,
            estimate_type, stats, mat);
 
-  draw_motion_field(src_img, ref_img, correspondences,
-                    num_correspondences,
+  draw_motion_field(src_img, ref_img, correspondences, num_correspondences,
                     formatName("non_clustered_motion_field", frame));
 
-  draw_warped(src_img, ref_img, mat,
-              formatName("non_clustered_warped", frame));
+  stats.non_segmented_error = draw_warped(
+      src_img, ref_img, mat, formatName("non_clustered_warped", frame));
+
+  fprintf(stderr, "Non-segmented error: %f\n", stats.non_segmented_error);
 
   free(correspondences);
-
-  auto stop = high_resolution_clock::now();
-  stats.time = duration_cast<milliseconds>(stop - start).count();
 }
 
 void av1(const Mat &src_frame, const Mat &ref_frame,
@@ -159,9 +130,6 @@ void av1(const Mat &src_frame, const Mat &ref_frame,
 
   auto stop_1 = high_resolution_clock::now();
 
-  //  src_img.release();
-  //  ref_img.release();
-
   std::vector<DMatch> good_matches;
   std::vector<KeyPoint> src_keypoints, ref_keypoints;
 
@@ -176,19 +144,8 @@ void av1(const Mat &src_frame, const Mat &ref_frame,
     good_matches.emplace_back(j, j, 0);
   }
 
-  stats.src_points_num = num_src_corners;
-  stats.ref_points_num = num_ref_corners;
-  stats.matches_num = num_correspondences;
-
   if (num_correspondences == 0) {
     free(correspondences);
-    stats.inliers_num = 0;
-    stats.outliers_num = 0;
-    stats.matches_num = 0;
-    stats.inliers_per = 0;
-
-    stats.time = duration_cast<milliseconds>(stop_1 - start_1).count();
-
     return;
   }
 
@@ -203,8 +160,7 @@ void av1(const Mat &src_frame, const Mat &ref_frame,
   auto start_2 = high_resolution_clock::now();
 
   draw_motion_field(src_img, ref_img, (Correspondence *)correspondences,
-                    num_correspondences,
-                    formatName("av1_motion_field", frame));
+                    num_correspondences, formatName("av1_motion_field", frame));
 
   draw_clustered_motion_field(
       src_img, ref_img, (Correspondence *)correspondences, num_correspondences,
@@ -218,9 +174,4 @@ void av1(const Mat &src_frame, const Mat &ref_frame,
   draw_warped(src_img, ref_img, mat, formatName("av1_warped", frame));
 
   free(correspondences);
-
-  auto stop_2 = high_resolution_clock::now();
-  stats.time =
-      duration_cast<milliseconds>((stop_1 - start_1) + (stop_2 - start_2))
-          .count();
 }

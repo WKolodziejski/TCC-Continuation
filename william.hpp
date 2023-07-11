@@ -20,13 +20,9 @@ struct MatrixMap {
 };
 
 struct Stats {
-  int src_points_num = 0;
-  int ref_points_num = 0;
-  int matches_num = 0;
-  int inliers_num = 0;
-  int outliers_num = 0;
-  float inliers_per = 0;
-  unsigned long time = 0;
+  double segmented_error;
+  double non_segmented_error;
+  double gain;
 };
 
 enum Detect {

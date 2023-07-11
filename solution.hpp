@@ -16,15 +16,16 @@ using namespace std;
 struct MatrixMap {
   double mat[8]{};
   double error = HUGE_VAL;
-  int k = -1;
+  int k = INT32_MAX;
   bool zero_motion = false;
 };
 
 struct Stats {
-  int segmented_error;
-  int non_segmented_error;
-  int gain;
-  double percent;
+  int segmented_error = INT32_MAX;
+  int non_segmented_error = INT32_MAX;
+  int best_k_error = INT32_MAX;
+  int gain = INT32_MAX;
+  double percent = HUGE_VAL;
 };
 
 enum Detect {

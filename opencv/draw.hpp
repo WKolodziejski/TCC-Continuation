@@ -27,7 +27,7 @@ void draw_clustered_motion_field(Mat &src_img, Mat &ref_img,
                                  Correspondence *correspondences,
                                  int num_correspondences, const string &name);
 
-double draw_warped(const Mat &src_img, const Mat &ref_img, const double mat[8],
+void draw_warped(const Mat &src_img, const Mat &ref_img, const double mat[8],
                    const string &name);
 
 // #ifdef __cplusplus

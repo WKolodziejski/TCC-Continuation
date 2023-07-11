@@ -18,46 +18,6 @@ RTL::Estimator<RTL::Affine, Correspondence, Correspondence *> *getEstimator(
   }
 }
 
-void segmented_error(const Mat &src_img, const Mat &ref_img,
-                       const double mat[8], int x, int y, MatrixMap **map,
-                       int k, bool zero_motion) {
-  Mat warp_mat = Mat::zeros(2, 3, CV_64FC1);
-  warp_mat.at<double>(0) = mat[2];  // scale x
-  warp_mat.at<double>(1) = mat[3];  // rot +
-  warp_mat.at<double>(2) = mat[0];  // trans x
-  warp_mat.at<double>(3) = mat[4];  // rot -
-  warp_mat.at<double>(4) = mat[5];  // scale y
-  warp_mat.at<double>(5) = mat[1];  // trans y
-
-  Mat warped_img;
-  warpAffine(src_img, warped_img, warp_mat, src_img.size(), INTER_AREA);
-
-  Mat error_img;
-  subtract(warped_img, ref_img, error_img);
-  multiply(error_img, error_img, error_img);
-
-  for (int xi = 0; xi < x; xi++) {
-    for (int yj = 0; yj < y; yj++) {
-      Rect roi = Rect(xi * WARP_BLOCK_SIZE, yj * WARP_BLOCK_SIZE,
-                      WARP_BLOCK_SIZE, WARP_BLOCK_SIZE);
-      Mat cropped = error_img(roi);
-
-      double error = sum(cropped)[0];
-
-      if (error < map[xi][yj].error) {
-        map[xi][yj].error = error;
-        map[xi][yj].k = k;
-        map[xi][yj].zero_motion = zero_motion;
-
-        // Copia a matriz
-        for (int j = 0; j < 8; j++) {
-          map[xi][yj].mat[j] = mat[j];
-        }
-      }
-    }
-  }
-}
-
 void estimate_clustered(Mat &src_img, Mat &ref_img,
                         Correspondence *correspondences,
                         int num_correspondences,
@@ -150,7 +110,14 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
       continue;
     }
 
-    segmented_error(src_img, ref_img, mat, x, y, map, i, distance(clusters[i].data()[1]) == 0);
+    double err = calc_error(src_img, ref_img, mat);
+
+    if (err < stats.best_k_error) {
+      stats.best_k_error = err;
+    }
+
+    calc_seg_error(src_img, ref_img, mat, x, y, map, i,
+                   distance(clusters[i].data()[1]) == 0);
   }
 
   stats.segmented_error = 0;

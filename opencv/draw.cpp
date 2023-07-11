@@ -4,28 +4,6 @@
 #include "../utils.hpp"
 #include "../av1/warp_affine.c"
 
-using namespace cv;
-using namespace cv::xfeatures2d;
-using namespace std;
-
-/*
-  / a b \  = /   1       0    \ * / 1+alpha  beta \
-  \ c d /    \ gamma  1+delta /   \    0      1   /
-  where a, b, c, d are wmmat[2], wmmat[3], wmmat[4], wmmat[5] respectively.
- */
-Mat parse_affine_mat(const double mat[8]) {
-  Mat warp_mat = Mat::zeros(2, 3, CV_64FC1);
-
-  warp_mat.at<double>(0) = mat[2];  // scale x
-  warp_mat.at<double>(1) = mat[3];  // rot +
-  warp_mat.at<double>(2) = mat[0];  // trans x
-  warp_mat.at<double>(3) = mat[4];  // rot -
-  warp_mat.at<double>(4) = mat[5];  // scale y
-  warp_mat.at<double>(5) = mat[1];  // trans y
-
-  return warp_mat;
-}
-
 Scalar get_cluster_color(int k) {
   switch (k) {
     case 0: return Scalar(255, 0, 0);
@@ -361,7 +339,7 @@ void draw_clustered_motion_field(Mat &src_img, Mat &ref_img,
   imwrite(name, img, params);
 }
 
-double draw_warped(const Mat &src_img, const Mat &ref_img, const double mat[8],
+void draw_warped(const Mat &src_img, const Mat &ref_img, const double mat[8],
                    const string &name) {
   Mat warp_mat = parse_affine_mat(mat);
 
@@ -375,12 +353,8 @@ double draw_warped(const Mat &src_img, const Mat &ref_img, const double mat[8],
 
   multiply(error_img, error_img, error_img);
 
-  double error = sum(error_img)[0];
-
   vector<int> params;
   params.push_back(cv::IMWRITE_PNG_COMPRESSION);
   params.push_back(0);
   imwrite(name, img, params);
-
-  return error;
 }

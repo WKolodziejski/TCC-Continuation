@@ -81,8 +81,9 @@ void compute(const Mat &src_frame, const Mat &ref_frame,
   draw_motion_field(src_img, ref_img, correspondences, num_correspondences,
                     formatName("non_clustered_motion_field", frame));
 
-  stats.non_segmented_error = draw_warped(
-      src_img, ref_img, mat, formatName("non_clustered_warped", frame));
+  stats.non_segmented_error = calc_error(src_img, ref_img, mat);
+
+  draw_warped(src_img, ref_img, mat, formatName("non_clustered_warped", frame));
 
   free(correspondences);
 }

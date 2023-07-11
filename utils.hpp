@@ -10,9 +10,15 @@
 extern "C" {
 #endif
 
+using namespace cv;
+using namespace cv::xfeatures2d;
+using namespace std;
+
 double distance(Correspondence &c);
 
 double angle(Correspondence &c);
+
+Mat parse_affine_mat(const double mat[8]);
 
 string detectName(int d);
 
@@ -31,6 +37,13 @@ string formatName(const string &prefix, int frame);
 
 string formatNameCluster(const string &prefix, const string &ver, int frame,
                          int k);
+
+void calc_seg_error(const Mat &src_img, const Mat &ref_img,
+                     const double mat[8], int x, int y, MatrixMap **map, int k,
+                     bool zero_motion);
+
+double calc_error(const Mat &src_img, const Mat &ref_img,
+                           const double mat[8]);
 
 #ifdef __cplusplus
 }

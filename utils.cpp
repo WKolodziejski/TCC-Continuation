@@ -1,3 +1,4 @@
+#include <opencv2/imgproc.hpp>
 #include "utils.hpp"
 
 double distance(Correspondence &c) {
@@ -12,6 +13,24 @@ double angle(Correspondence &c) {
   double y = c.y - c.ry;
 
   return atan2(y, x) * 180 / 3.14159265;
+}
+
+/*
+  / a b \  = /   1       0    \ * / 1+alpha  beta \
+  \ c d /    \ gamma  1+delta /   \    0      1   /
+  where a, b, c, d are wmmat[2], wmmat[3], wmmat[4], wmmat[5] respectively.
+ */
+Mat parse_affine_mat(const double mat[8]) {
+  Mat warp_mat = Mat::zeros(2, 3, CV_64FC1);
+
+  warp_mat.at<double>(0) = mat[2];  // scale x
+  warp_mat.at<double>(1) = mat[3];  // rot +
+  warp_mat.at<double>(2) = mat[0];  // trans x
+  warp_mat.at<double>(3) = mat[4];  // rot -
+  warp_mat.at<double>(4) = mat[5];  // scale y
+  warp_mat.at<double>(5) = mat[1];  // trans y
+
+  return warp_mat;
 }
 
 const char *DetectName[] = {
@@ -99,4 +118,60 @@ string formatNameCluster(const string& prefix, const string& ver, int frame, int
   name.append(std::to_string(k));
   name.append(".png");
   return name;
+}
+
+void calc_seg_error(const Mat &src_img, const Mat &ref_img,
+                     const double mat[8], int x, int y, MatrixMap **map,
+                     int k, bool zero_motion) {
+  Mat warp_mat = Mat::zeros(2, 3, CV_64FC1);
+  warp_mat.at<double>(0) = mat[2];  // scale x
+  warp_mat.at<double>(1) = mat[3];  // rot +
+  warp_mat.at<double>(2) = mat[0];  // trans x
+  warp_mat.at<double>(3) = mat[4];  // rot -
+  warp_mat.at<double>(4) = mat[5];  // scale y
+  warp_mat.at<double>(5) = mat[1];  // trans y
+
+  Mat warped_img;
+  warpAffine(src_img, warped_img, warp_mat, src_img.size(), INTER_AREA);
+
+  Mat error_img;
+  subtract(warped_img, ref_img, error_img);
+  multiply(error_img, error_img, error_img);
+
+  for (int xi = 0; xi < x; xi++) {
+    for (int yj = 0; yj < y; yj++) {
+      Rect roi = Rect(xi * WARP_BLOCK_SIZE, yj * WARP_BLOCK_SIZE,
+                      WARP_BLOCK_SIZE, WARP_BLOCK_SIZE);
+      Mat cropped = error_img(roi);
+
+      double error = sum(cropped)[0];
+
+      if (error < map[xi][yj].error) {
+        map[xi][yj].error = error;
+        map[xi][yj].k = k;
+        map[xi][yj].zero_motion = zero_motion;
+
+        // Copia a matriz
+        for (int j = 0; j < 8; j++) {
+          map[xi][yj].mat[j] = mat[j];
+        }
+      }
+    }
+  }
+}
+
+double calc_error(const Mat &src_img, const Mat &ref_img, const double mat[8]) {
+  Mat warp_mat = parse_affine_mat(mat);
+
+  Mat img;
+  warpAffine(src_img, img, warp_mat, src_img.size(), INTER_AREA);
+
+  addWeighted(img, 0.5, ref_img, 0.5, 0, img);
+
+  Mat error_img;
+  subtract(img, ref_img, error_img);
+
+  multiply(error_img, error_img, error_img);
+
+  return sum(error_img)[0];
 }

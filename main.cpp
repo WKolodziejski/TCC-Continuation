@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
   string folder = argv[1];
   ofstream csv;
   csv.open(folder.append("results.csv"));
-  csv << "video;frame;error;seg_error;gain;percent\n";
+  csv << "video;frame;calc_error;seg_error;k_error;gain;percent\n";
 
   for (int v = 2; v < argc; v++) {
     string name = argv[v];
@@ -54,6 +54,7 @@ int main(int argc, char *argv[]) {
       csv << f << ";";
       csv << stats[f].non_segmented_error << ";";
       csv << stats[f].segmented_error << ";";
+      csv << stats[f].best_k_error << ";";
       csv << stats[f].gain << ";";
       csv << percent << "\n";
     }

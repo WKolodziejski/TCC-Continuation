@@ -321,11 +321,11 @@ static int64_t segmented_frame_error(const uint8_t *const ref, int stride,
     for (int j = 0; j < p_width; j += WARP_ERROR_BLOCK) {
       int seg_x = j >> WARP_ERROR_BLOCK_LOG;
       int seg_y = i >> WARP_ERROR_BLOCK_LOG;
-      // Only compute the error if this block contains inliers from the motion
+      // Only compute the calc_error if this block contains inliers from the motion
       // model
       if (!segment_map[seg_y * segment_map_stride + seg_x]) continue;
 
-      // avoid computing error into the frame padding
+      // avoid computing calc_error into the frame padding
       patch_w = AOMMIN(error_bsize_w, p_width - j);
       patch_h = AOMMIN(error_bsize_h, p_height - i);
       sum_error += av1_calc_frame_error(ref + j + i * stride, stride,
@@ -361,7 +361,7 @@ void av1_compute_feature_segmentation_map(uint8_t *segment_map, int width,
   }
 
   // If this motion does not make up a large enough portion of the frame,
-  // use the unsegmented version of the error metric
+  // use the unsegmented version of the calc_error metric
   if (seg_count < (width * height * SEG_COUNT_TR))
     memset(segment_map, 1, width * height * sizeof(*segment_map));
 }
@@ -702,7 +702,7 @@ static int64_t warp_error(WarpedMotionParams *wm, const uint8_t *const ref,
     for (int j = p_col; j < p_col + p_width; j += WARP_ERROR_BLOCK) {
       int seg_x = j >> WARP_ERROR_BLOCK_LOG;
       int seg_y = i >> WARP_ERROR_BLOCK_LOG;
-      // Only compute the error if this block contains inliers from the motion
+      // Only compute the calc_error if this block contains inliers from the motion
       // model
       if (!segment_map[seg_y * segment_map_stride + seg_x]) continue;
       // avoid warping extra 8x8 blocks in the padded region of the frame
@@ -836,7 +836,7 @@ int64_t av1_refine_integerized_param(
       }
       *param = best_param;
 
-      // look to the direction chosen above repeatedly until error increases
+      // look to the direction chosen above repeatedly until calc_error increases
       // for the biggest step size
       while (step_dir) {
         *param = add_param_offset(p, best_param, step * step_dir);

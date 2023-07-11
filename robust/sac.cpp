@@ -94,18 +94,6 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
     double inliers = estimate(clusters[i].data(), size, transformation_type,
                               type, stats, mat);
 
-    //    bool identity = true;
-    //    for (double j : mat) {
-    //      if (j != 0) {
-    //        identity = false;
-    //        break;
-    //      }
-    //    }
-    //
-    //    if (identity) {
-    //      continue;
-    //    }
-
     if (inliers < 0.01) {
       continue;
     }

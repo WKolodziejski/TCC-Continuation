@@ -21,11 +21,13 @@ struct MatrixMap {
 };
 
 struct Stats {
-  int segmented_error = INT32_MAX;
-  int non_segmented_error = INT32_MAX;
-  int best_k_error = INT32_MAX;
-  int gain = INT32_MAX;
-  double percent = HUGE_VAL;
+  int seg_error = INT32_MAX;
+  int error = INT32_MAX;
+  int k_error = INT32_MAX;
+  int seg_gain = INT32_MAX;
+  int k_gain = INT32_MAX;
+  double seg_percent = HUGE_VAL;
+  double k_percent = HUGE_VAL;
 };
 
 enum Detect {

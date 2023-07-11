@@ -112,19 +112,19 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
 
     double err = calc_error(src_img, ref_img, mat);
 
-    if (err < stats.best_k_error) {
-      stats.best_k_error = err;
+    if (err < stats.k_error) {
+      stats.k_error = err;
     }
 
     calc_seg_error(src_img, ref_img, mat, x, y, map, i,
                    distance(clusters[i].data()[1]) == 0);
   }
 
-  stats.segmented_error = 0;
+  stats.seg_error = 0;
 
   for (int xi = 0; xi < x; xi++) {
      for (int yj = 0; yj < y; yj++) {
-      stats.segmented_error += map[xi][yj].error;
+      stats.seg_error += map[xi][yj].error;
      }
   }
 

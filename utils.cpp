@@ -82,8 +82,8 @@ string modeName(int m) { return ModeName[m]; }
 
 string estimateName(int e) { return EstimateName[e]; }
 
-string formatNameSolution(Detect detect_type, Match match_type, Estimate estimate_type,
-                  int frame) {
+string formatNameSolution(Detect detect_type, Match match_type,
+                          Estimate estimate_type, int frame) {
   string name = "output/";
   name.append(DetectName[detect_type]);
   name.append("_");
@@ -98,7 +98,7 @@ string formatNameSolution(Detect detect_type, Match match_type, Estimate estimat
   return name;
 }
 
-string formatName(const string& prefix, int frame) {
+string formatName(const string &prefix, int frame) {
   string name = "output/";
   name.append(prefix);
   name.append("_");
@@ -107,7 +107,8 @@ string formatName(const string& prefix, int frame) {
   return name;
 }
 
-string formatNameCluster(const string& prefix, const string& ver, int frame, int k) {
+string formatNameCluster(const string &prefix, const string &ver, int frame,
+                         int k) {
   string name = "output/";
   name.append(ver);
   name.append("_");
@@ -120,9 +121,30 @@ string formatNameCluster(const string& prefix, const string& ver, int frame, int
   return name;
 }
 
-void calc_seg_error(const Mat &src_img, const Mat &ref_img,
-                     const double mat[8], int x, int y, MatrixMap **map,
-                     int k, bool zero_motion) {
+Mat calc_residual_img(const Mat &src_img, const Mat &ref_img, const double mat[8]) {
+  Mat warp_mat = parse_affine_mat(mat);
+
+  Mat src_img_signed;
+  Mat ref_img_signed;
+
+  src_img.convertTo(src_img_signed, CV_32F);
+  ref_img.convertTo(ref_img_signed, CV_32F);
+
+  Mat warped_img;
+  warpAffine(src_img_signed, warped_img, warp_mat, src_img_signed.size(), INTER_AREA);
+
+  Mat error_img_signed;
+  subtract(warped_img, ref_img_signed, error_img_signed);
+  multiply(error_img_signed, error_img_signed, error_img_signed);
+
+  Mat error_img_unsigned;
+  error_img_signed.convertTo(error_img_unsigned, CV_8U);
+
+  return error_img_unsigned;
+}
+
+void calc_seg_error(const Mat &src_img, const Mat &ref_img, const double mat[8],
+                    int x, int y, MatrixMap **map, int k, bool zero_motion) {
   Mat warp_mat = Mat::zeros(2, 3, CV_64FC1);
   warp_mat.at<double>(0) = mat[2];  // scale x
   warp_mat.at<double>(1) = mat[3];  // rot +
@@ -131,12 +153,7 @@ void calc_seg_error(const Mat &src_img, const Mat &ref_img,
   warp_mat.at<double>(4) = mat[5];  // scale y
   warp_mat.at<double>(5) = mat[1];  // trans y
 
-  Mat warped_img;
-  warpAffine(src_img, warped_img, warp_mat, src_img.size(), INTER_AREA);
-
-  Mat error_img;
-  subtract(warped_img, ref_img, error_img);
-  multiply(error_img, error_img, error_img);
+  Mat error_img = calc_residual_img(src_img, ref_img, mat);
 
   for (int xi = 0; xi < x; xi++) {
     for (int yj = 0; yj < y; yj++) {
@@ -161,14 +178,9 @@ void calc_seg_error(const Mat &src_img, const Mat &ref_img,
 }
 
 double calc_error(const Mat &src_img, const Mat &ref_img, const double mat[8]) {
-  Mat warp_mat = parse_affine_mat(mat);
+  Mat error_img = calc_residual_img(src_img, ref_img, mat);
 
-  Mat img;
-  warpAffine(src_img, img, warp_mat, src_img.size(), INTER_AREA);
+  double error = sum(error_img)[0];
 
-  Mat error_img;
-  subtract(img, ref_img, error_img);
-  multiply(error_img, error_img, error_img);
-
-  return sum(error_img)[0];
+  return error;
 }

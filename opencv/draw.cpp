@@ -4,6 +4,8 @@
 #include "../utils.hpp"
 #include "../av1/warp_affine.c"
 
+#define DRAW false
+
 Scalar get_cluster_color(int k) {
   switch (k) {
     case 0: return Scalar(255, 0, 0);
@@ -62,6 +64,8 @@ Mat cut_overlay(const Mat &src_img, int xi, int yj, const MatrixMap &map) {
 void draw_k_warped_image(const Mat &src_img, const Mat &ref_img, int x, int y,
                          MatrixMap **map, const string &inv_name,
                          const string &fwd_name) {
+  if (!DRAW) return;
+
   Mat inv_warped_img = Mat::zeros(src_img.rows, src_img.cols, src_img.type());
   Mat fwd_warped_img = Mat::zeros(src_img.rows, src_img.cols, src_img.type());
   Mat inv_clusters_img = Mat::zeros(src_img.rows, src_img.cols, CV_8UC3);
@@ -154,9 +158,7 @@ void draw_matches(Mat &src_img, Mat &ref_img,
                   std::vector<KeyPoint> &src_keypoints,
                   std::vector<KeyPoint> &ref_keypoints,
                   std::vector<DMatch> &good_matches, const string &name) {
-  // R = Scalar(0, 0, 255)
-  // B = Scalar(255, 0, 0)
-  // G = Scalar(0, 255, 0)
+  if (!DRAW) return;
 
   Scalar color_lines = Scalar(0, 0, 255);
   Scalar color_keypoints = Scalar(255, 0, 0);
@@ -175,6 +177,8 @@ void draw_matches(Mat &src_img, Mat &ref_img,
 void draw_motion_field(Mat &src_img, Mat &ref_img,
                        Correspondence *correspondences, int num_correspondences,
                        const string &name) {
+  if (!DRAW) return;
+
   Mat src;
   Mat ref;
   Mat mask = Mat::zeros(src_img.size(), CV_8UC3);
@@ -206,6 +210,8 @@ void draw_motion_field(Mat &src_img, Mat &ref_img,
 void draw_clustered_motion_field(Mat &src_img, Mat &ref_img,
                                  Correspondence *correspondences,
                                  int num_correspondences, const string &name) {
+  if (!DRAW) return;
+
   Mat src;
   Mat ref;
   Mat mask = Mat::zeros(src_img.size(), CV_8UC3);
@@ -341,6 +347,8 @@ void draw_clustered_motion_field(Mat &src_img, Mat &ref_img,
 
 void draw_warped(const Mat &src_img, const Mat &ref_img, const double mat[8],
                    const string &name) {
+  if (!DRAW) return;
+
   Mat warp_mat = parse_affine_mat(mat);
 
   Mat img;

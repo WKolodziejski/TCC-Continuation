@@ -15,17 +15,17 @@ using namespace std;
 
 struct MatrixMap {
   double mat[8]{};
-  double error = HUGE_VAL;
+  int64_t error = HUGE_VAL;
   int k = INT32_MAX;
   bool zero_motion = false;
 };
 
 struct Stats {
-  int seg_error = INT32_MAX;
-  int error = INT32_MAX;
-  int k_error = INT32_MAX;
-  int seg_gain = INT32_MAX;
-  int k_gain = INT32_MAX;
+  int64_t seg_error = INT64_MAX;
+  int64_t error = INT64_MAX;
+  int64_t k_error = INT64_MAX;
+  int64_t seg_gain = INT64_MAX;
+  int64_t k_gain = INT64_MAX;
   double seg_percent = HUGE_VAL;
   double k_percent = HUGE_VAL;
 };

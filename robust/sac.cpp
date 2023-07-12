@@ -42,6 +42,10 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
 
   // Escolhe o melhor valor de K usando a regra do joelho
   for (int i = k; i < 10; i++) {
+    if (num_correspondences < k) {
+      break;
+    }
+
     double error = kmeans(samples, i, labels, TermCriteria(3, 10000, 0.0001), 5,
                           KMEANS_PP_CENTERS, centers);
 

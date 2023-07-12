@@ -166,11 +166,8 @@ double calc_error(const Mat &src_img, const Mat &ref_img, const double mat[8]) {
   Mat img;
   warpAffine(src_img, img, warp_mat, src_img.size(), INTER_AREA);
 
-  addWeighted(img, 0.5, ref_img, 0.5, 0, img);
-
   Mat error_img;
   subtract(img, ref_img, error_img);
-
   multiply(error_img, error_img, error_img);
 
   return sum(error_img)[0];

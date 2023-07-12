@@ -4,14 +4,15 @@
 using namespace cv;
 using namespace cv::xfeatures2d;
 
-#define FRAMES 7
+#define FRAMES 6
 
 // args: <output_folder> <input_videos...>
 int main(int argc, char *argv[]) {
   string folder = argv[1];
   ofstream csv;
   csv.open(folder.append("results.csv"));
-  csv << "video;frame;error;seg_error;k_error;seg_gain;k_gain;seg_percent;k_percent\n";
+  csv << "video;frame;error;seg_error;k_error;seg_gain;k_gain;seg_percent;k_"
+         "percent\n";
 
   for (int v = 2; v < argc; v++) {
     string name = argv[v];
@@ -38,17 +39,22 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "%s\n", name.c_str());
 
     for (int f = 0; f < FRAMES; f++) {
+      if (stats[f].error == INT64_MAX || stats[f].seg_error == INT64_MAX ||
+          stats[f].k_error == INT64_MAX) {
+        continue;
+      }
+
       stats[f].seg_gain = stats[f].error - stats[f].seg_error;
-      stats[f].seg_percent = (double) stats[f].seg_gain / (double) stats[f].error;
+      stats[f].seg_percent = (double)stats[f].seg_gain / (double)stats[f].error;
 
       stats[f].k_gain = stats[f].error - stats[f].k_error;
-      stats[f].k_percent = (double) stats[f].k_gain / (double) stats[f].error;
+      stats[f].k_percent = (double)stats[f].k_gain / (double)stats[f].error;
 
-      fprintf(stderr, "frame %d\n", f);
-      fprintf(stderr, "seg_gain: %d\n", stats[f].seg_gain);
-      fprintf(stderr, "seg_percent: %f\n", stats[f].seg_percent);
-      fprintf(stderr, "k_gain: %d\n", stats[f].k_gain);
-      fprintf(stderr, "k_percent: %f\n", stats[f].k_percent);
+      //      fprintf(stderr, "frame %d\n", f);
+      //      fprintf(stderr, "seg_gain: %d\n", stats[f].seg_gain);
+      //      fprintf(stderr, "seg_percent: %f\n", stats[f].seg_percent);
+      //      fprintf(stderr, "k_gain: %d\n", stats[f].k_gain);
+      //      fprintf(stderr, "k_percent: %f\n", stats[f].k_percent);
 
       string seg_percent = std::to_string(stats[f].seg_percent);
       string k_percent = std::to_string(stats[f].k_percent);

@@ -42,7 +42,7 @@ void estimate_clustered(Mat &src_img, Mat &ref_img,
 
   // Escolhe o melhor valor de K usando a regra do joelho
   for (int i = k; i < 10; i++) {
-    if (num_correspondences < k) {
+    if (num_correspondences < i) {
       break;
     }
 

@@ -15,8 +15,8 @@ using namespace std;
 
 struct MatrixMap {
   double mat[8]{};
-  int64_t error = HUGE_VAL;
-  int k = INT32_MAX;
+  int64_t error = INT64_MAX;
+  int k = 0;
   bool zero_motion = false;
 };
 

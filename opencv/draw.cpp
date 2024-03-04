@@ -4,7 +4,7 @@
 #include "../utils.hpp"
 #include "../av1/warp_affine.c"
 
-#define DRAW false
+#define DRAW true
 
 Scalar get_cluster_color(int k) {
   switch (k) {
@@ -158,9 +158,9 @@ void draw_matches(Mat &src_img, Mat &ref_img,
                   std::vector<KeyPoint> &src_keypoints,
                   std::vector<KeyPoint> &ref_keypoints,
                   std::vector<DMatch> &good_matches, const string &name) {
-  if (!DRAW) return;
+//  if (!DRAW) return;
 
-  Scalar color_lines = Scalar(0, 0, 255);
+  Scalar color_lines = Scalar(0, 255, 0);
   Scalar color_keypoints = Scalar(255, 0, 0);
 
   Mat img;

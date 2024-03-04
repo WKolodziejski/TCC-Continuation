@@ -13,8 +13,6 @@ void compute(const Mat &src_frame, const Mat &ref_frame,
              TransformationType transformation_type, Detect detect_type,
              Match match_type, Estimate estimate_type, Stats &stats,
              int frame) {
-  auto start = high_resolution_clock::now();
-
   Mat src_img;
   Mat ref_img;
   cv::cvtColor(src_frame, src_img, cv::COLOR_BGR2GRAY);
